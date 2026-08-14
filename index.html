@@ -5,20 +5,59 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kvitsøy Idrettslag – Aktivitetskalender</title>
 <style>
+  /* Mørkt klubbtema (standard, beregnet på TV/infoskjerm).
+     Fargene bygger på kvitsoyil.no: navigasjonsblå #0054a6, panelblå #1174ba, logoblå #0007e6. */
   :root {
-    /* Farger fra kvitsoyil.no: logo-blå, navigasjonsblå og panelblå */
     --logo-blaa: #0007e6;
     --navy: #0054a6;
-    --navy-moerk: #004385;
     --panelblaa: #1174ba;
+
+    --bg: #001b2e;
+    --kort: #06304f;
+    --strek: #10466e;
+    --tekst: #f2f7fc;
+    --grau: #9db6cc;
+    --flate: #002440;          /* topp- og bunnlinje */
+    --head-bg: var(--navy);    /* dagoverskrifter */
+    --head-tekst: #ffffff;
+    --today-bg: var(--panelblaa);
+    --today-ramme: #4db3ff;
+    --ev-bg: #0a3a63;          /* faste aktiviteter */
+    --ev-kant: #4db3ff;
+    --ev-tid: #7cc4ff;
+    --ev-tekst: var(--tekst);
+    --oneoff-bg: #ffffff;      /* enkeltarrangement */
+    --oneoff-kant: var(--logo-blaa);
+    --oneoff-tekst: #002440;
+    --oneoff-tid: var(--navy);
+    --tom: #3f6486;
+  }
+  /* Lyst tema (?tema=lys) – samme uttrykk som kvitsoyil.no */
+  body.tema-lys {
     --bg: #eef1f4;
     --kort: #ffffff;
     --strek: #dfe3e8;
     --tekst: #1c1c1c;
     --grau: #6b7178;
+    --flate: #ffffff;
+    --head-bg: var(--panelblaa);
+    --head-tekst: #ffffff;
+    --today-bg: var(--navy);
+    --today-ramme: var(--navy);
+    --ev-bg: #f6f9fc;
+    --ev-kant: var(--panelblaa);
+    --ev-tid: var(--navy);
+    --ev-tekst: #1c1c1c;
+    --oneoff-bg: var(--navy);
+    --oneoff-kant: #004385;
+    --oneoff-tekst: #ffffff;
+    --oneoff-tid: #ffffff;
+    --tom: #b3bac1;
   }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { font-size: clamp(11px, 0.95vw, 26px); }
+  /* Stor grunnskrift: siden skal kunne leses på ca. 5 meters avstand */
+  html { font-size: clamp(13px, 1.22vw, 30px); }
   body {
     font-family: Arial, Helvetica, sans-serif;
     background: var(--bg);
@@ -34,40 +73,44 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.8rem 1.6rem;
-    background: #ffffff;
+    padding: 0.7rem 1.4rem;
+    background: var(--flate);
     border-bottom: 4px solid var(--navy);
     flex: 0 0 auto;
   }
-  .brand { display: flex; align-items: center; gap: 1rem; }
-  .brand img { height: 3.4rem; width: auto; display: block; }
+  .brand { display: flex; align-items: center; gap: 0.9rem; }
+  .brand .merke {
+    background: #ffffff;
+    padding: 0.3rem 0.45rem;
+    display: flex;
+    align-items: center;
+  }
+  .brand img { height: 2.7rem; width: auto; display: block; }
   .brand h1 {
-    font-size: 1.55rem;
+    font-size: 1.5rem;
     font-weight: bold;
-    color: var(--logo-blaa);
     letter-spacing: 0.03em;
     line-height: 1.05;
   }
-  .brand .sub { font-size: 0.95rem; color: var(--grau); margin-top: 0.2rem; }
+  .brand .sub { font-size: 0.9rem; color: var(--grau); margin-top: 0.18rem; }
   .clockbox { text-align: right; }
-  .clock { font-size: 2.3rem; font-weight: bold; color: var(--navy); font-variant-numeric: tabular-nums; line-height: 1; }
-  .dateline { font-size: 0.95rem; color: var(--grau); margin-top: 0.25rem; }
+  .clock { font-size: 2.4rem; font-weight: bold; font-variant-numeric: tabular-nums; line-height: 1; }
+  .dateline { font-size: 0.9rem; color: var(--grau); margin-top: 0.22rem; }
 
   /* ---------- Hovedområde ---------- */
   main {
     flex: 1 1 auto;
     display: grid;
-    grid-template-columns: 1fr 24rem;
-    gap: 0.9rem;
-    padding: 0.9rem 1.6rem;
+    grid-template-columns: 1fr 19rem;
+    gap: 0.8rem;
+    padding: 0.8rem 1.4rem;
     min-height: 0;
   }
 
-  /* Ukesvisning */
+  /* Ukesvisning (rullerende, antall dager styres av ?dager=N) */
   .week {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 0.7rem;
+    gap: 0.6rem;
     min-height: 0;
   }
   .day {
@@ -78,16 +121,16 @@
     min-height: 0;
     overflow: hidden;
   }
-  .day.today { border: 2px solid var(--navy); }
+  .day.today { border: 2px solid var(--today-ramme); }
   .day-head {
-    padding: 0.5rem 0.7rem;
-    background: var(--panelblaa);
-    color: #ffffff;
+    padding: 0.5rem 0.65rem;
+    background: var(--head-bg);
+    color: var(--head-tekst);
     flex: 0 0 auto;
   }
-  .day.today .day-head { background: var(--navy); }
-  .day-head .wd { font-size: 1rem; font-weight: bold; }
-  .day-head .dt { font-size: 0.8rem; opacity: 0.85; margin-top: 0.1rem; }
+  .day.today .day-head { background: var(--today-bg); }
+  .day-head .wd { font-size: 1.1rem; font-weight: bold; }
+  .day-head .dt { font-size: 0.85rem; opacity: 0.85; margin-top: 0.1rem; }
   .day-body {
     padding: 0.55rem;
     display: flex;
@@ -97,30 +140,18 @@
     flex: 1 1 auto;
   }
   .ev {
-    background: #f6f9fc;
-    border-left: 0.3rem solid var(--panelblaa);
-    padding: 0.45rem 0.55rem;
+    background: var(--ev-bg);
+    border-left: 0.32rem solid var(--ev-kant);
+    color: var(--ev-tekst);
+    padding: 0.5rem 0.6rem;
   }
-  .ev .time { font-size: 0.8rem; font-weight: bold; color: var(--navy); font-variant-numeric: tabular-nums; }
-  .ev .name { font-size: 0.92rem; font-weight: bold; line-height: 1.25; margin-top: 0.12rem; overflow-wrap: anywhere; }
-  .ev.oneoff { background: var(--navy); border-left-color: var(--navy-moerk); color: #ffffff; }
-  .ev.oneoff .time { color: #ffffff; }
-  .ev.done { opacity: 0.35; }
-  .day.past .day-body { opacity: 0.45; }
-  .more { font-size: 0.8rem; color: var(--grau); padding: 0.1rem 0.2rem; }
-  .empty { font-size: 0.82rem; color: #b3bac1; padding: 0.2rem 0.2rem; }
-
-  /* Helgekolonnen: lørdag og søndag i samme kolonne */
-  .wk-group { display: flex; flex-direction: column; gap: 0.5rem; }
-  .wk-group.past { opacity: 0.45; }
-  .wk-label {
-    font-size: 0.8rem;
-    font-weight: bold;
-    color: var(--navy);
-    border-bottom: 1px solid var(--strek);
-    padding-bottom: 0.15rem;
-  }
-  .wk-group + .wk-group { margin-top: 0.35rem; }
+  .ev .time { font-size: 0.95rem; font-weight: bold; color: var(--ev-tid); font-variant-numeric: tabular-nums; }
+  .ev .name { font-size: 1.12rem; font-weight: bold; line-height: 1.22; margin-top: 0.15rem; overflow-wrap: anywhere; }
+  .ev.oneoff { background: var(--oneoff-bg); border-left-color: var(--oneoff-kant); color: var(--oneoff-tekst); }
+  .ev.oneoff .time { color: var(--oneoff-tid); }
+  .ev.done { opacity: 0.3; }
+  .more { font-size: 0.85rem; color: var(--grau); padding: 0.1rem 0.2rem; }
+  .empty { font-size: 0.85rem; color: var(--tom); padding: 0.2rem 0.2rem; }
 
   /* Kommende enkeltarrangementer */
   aside {
@@ -132,25 +163,25 @@
     overflow: hidden;
   }
   aside h2 {
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: bold;
-    padding: 0.6rem 0.8rem;
-    background: var(--navy);
-    color: #ffffff;
+    padding: 0.55rem 0.75rem;
+    background: var(--head-bg);
+    color: var(--head-tekst);
     flex: 0 0 auto;
   }
-  .hl-list { padding: 0.7rem; display: flex; flex-direction: column; gap: 0.7rem; overflow: hidden; }
+  .hl-list { padding: 0.65rem; display: flex; flex-direction: column; gap: 0.65rem; overflow: hidden; }
   .hl {
-    display: flex; gap: 0.7rem;
+    display: flex; gap: 0.65rem;
     border: 1px solid var(--strek);
     overflow: hidden;
   }
-  .hl img { width: 6.2rem; height: 5rem; object-fit: cover; flex: 0 0 auto; background: var(--bg); }
-  .hl .info { padding: 0.5rem 0.6rem 0.5rem 0; min-width: 0; }
-  .hl .when { font-size: 0.8rem; font-weight: bold; color: var(--navy); }
-  .hl .name { font-size: 0.95rem; font-weight: bold; line-height: 1.25; margin-top: 0.15rem; }
+  .hl img { width: 5.6rem; height: 4.8rem; object-fit: cover; flex: 0 0 auto; background: var(--bg); }
+  .hl .info { padding: 0.45rem 0.55rem 0.45rem 0; min-width: 0; }
+  .hl .when { font-size: 0.85rem; font-weight: bold; color: var(--ev-tid); }
+  .hl .name { font-size: 1rem; font-weight: bold; line-height: 1.22; margin-top: 0.15rem; overflow-wrap: anywhere; }
   .hl .desc {
-    font-size: 0.8rem; color: var(--grau); margin-top: 0.2rem; line-height: 1.3;
+    font-size: 0.82rem; color: var(--grau); margin-top: 0.2rem; line-height: 1.3;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
   .hl-empty { color: var(--grau); font-size: 0.9rem; padding: 0.5rem 0.9rem; }
@@ -161,10 +192,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.45rem 1.6rem;
-    background: #ffffff;
+    padding: 0.4rem 1.4rem;
+    background: var(--flate);
     border-top: 1px solid var(--strek);
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     color: var(--grau);
   }
   .status { display: flex; align-items: center; gap: 0.45rem; }
@@ -173,15 +204,15 @@
   .legend { display: flex; gap: 1.2rem; }
   .legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
   .chip { width: 0.85rem; height: 0.55rem; display: inline-block; }
-  .chip.t { background: var(--panelblaa); }
-  .chip.a { background: var(--navy); }
+  .chip.t { background: var(--ev-kant); }
+  .chip.a { background: var(--oneoff-bg); border: 1px solid var(--oneoff-kant); }
 </style>
 </head>
 <body>
 
 <header>
   <div class="brand">
-    <img src="img/kil-merke.png" alt="KIL">
+    <div class="merke"><img src="img/kil-merke.png" alt="KIL"></div>
     <div>
       <h1 id="page-title">KVITSØY IDRETTSLAG</h1>
       <div class="sub">Aktivitetskalender</div>
@@ -219,6 +250,7 @@ const CONFIG = {
   ORGANIZER: "KVITSØY IDRETTSLAG",
   REFRESH_MINUTES: 10,   // hvor ofte RSS-feeden hentes på nytt
   RELOAD_HOURS: 12,      // full side-innlasting (plukker opp nye versjoner av siden)
+  DAYS_TO_SHOW: 7,       // antall dagkolonner (overstyres med ?dager=N)
   MAX_PER_DAY: 5,        // maks synlige hendelser per dag
   HIGHLIGHT_DAYS: 90,    // hvor langt frem enkeltarrangementer vises i sidepanelet
   MAX_HIGHLIGHTS: 5,
@@ -226,6 +258,9 @@ const CONFIG = {
 
 const params = new URLSearchParams(location.search);
 if (params.get("alle") === "1") CONFIG.ORGANIZER = "";
+if (params.get("dager")) CONFIG.DAYS_TO_SHOW = Math.min(14, Math.max(1, parseInt(params.get("dager"), 10) || 7));
+if (params.get("tema") === "lys") document.body.classList.add("tema-lys");
+document.getElementById("week").style.gridTemplateColumns = `repeat(${CONFIG.DAYS_TO_SHOW}, 1fr)`;
 
 const MONTHS = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11 };
 const WEEKDAYS_NO = ["søndag","mandag","tirsdag","onsdag","torsdag","fredag","lørdag"];
@@ -304,14 +339,13 @@ function occurrencesFor(series, fromDay, toDay) {
 }
 
 /* ---------- Rendering ---------- */
-// Fast ukesvisning: mandag–fredag som egne kolonner, lørdag+søndag samlet i en helgekolonne.
+// Rullerende visning: dagens dag først, deretter de neste N-1 dagene.
 function render() {
   if (!seriesCache) return;
   const now = new Date();
   const today = atMidnight(now);
-  const monday = addDays(today, -((today.getDay() + 6) % 7));
-  const sunday = addDays(monday, 6);
-  const occ = occurrencesFor(seriesCache, monday, sunday);
+  const lastDay = addDays(today, CONFIG.DAYS_TO_SHOW - 1);
+  const occ = occurrencesFor(seriesCache, today, lastDay);
 
   const byDay = new Map();
   for (const o of occ) {
@@ -320,13 +354,14 @@ function render() {
     byDay.get(k).push(o);
   }
 
-  const nowHM = now.toTimeString().slice(0,5);
-  const listHtml = (d) => {
-    const isToday = dayKey(d) === dayKey(today);
+  let html = "";
+  for (let i = 0; i < CONFIG.DAYS_TO_SHOW; i++) {
+    const d = addDays(today, i);
     const events = byDay.get(dayKey(d)) || [];
+    const label = i === 0 ? "I dag" : i === 1 ? "I morgen" : cap(WEEKDAYS_NO[d.getDay()]);
     let body = "";
     for (const ev of events.slice(0, CONFIG.MAX_PER_DAY)) {
-      const done = isToday && ev.endTime >= ev.startTime && ev.endTime <= nowHM;
+      const done = i === 0 && ev.endTime >= ev.startTime && ev.endTime <= now.toTimeString().slice(0,5);
       body += `<div class="ev ${ev.recurring ? "" : "oneoff"} ${done ? "done" : ""}">
         <div class="time">${ev.startTime}–${ev.endTime}</div>
         <div class="name">${esc(ev.name)}</div>
@@ -334,44 +369,14 @@ function render() {
     }
     if (events.length > CONFIG.MAX_PER_DAY) body += `<div class="more">+ ${events.length - CONFIG.MAX_PER_DAY} flere</div>`;
     if (!events.length) body = `<div class="empty">Ingen aktiviteter</div>`;
-    return body;
-  };
-
-  let html = "";
-  for (let i = 0; i < 5; i++) {
-    const d = addDays(monday, i);
-    const isToday = dayKey(d) === dayKey(today);
-    html += `<div class="day ${isToday ? "today" : ""} ${d < today ? "past" : ""}">
+    html += `<div class="day ${i === 0 ? "today" : ""}">
       <div class="day-head">
-        <div class="wd">${cap(WEEKDAYS_NO[d.getDay()])}</div>
-        <div class="dt">${d.getDate()}. ${MONTHS_NO[d.getMonth()]}${isToday ? " · i dag" : ""}</div>
+        <div class="wd">${label}</div>
+        <div class="dt">${cap(WEEKDAYS_NO[d.getDay()])} ${d.getDate()}. ${MONTHS_NO[d.getMonth()]}</div>
       </div>
-      <div class="day-body">${listHtml(d)}</div>
+      <div class="day-body">${body}</div>
     </div>`;
   }
-
-  // Helgekolonnen
-  const sat = addDays(monday, 5), sun = sunday;
-  const satToday = dayKey(sat) === dayKey(today), sunToday = dayKey(sun) === dayKey(today);
-  const range = sat.getMonth() === sun.getMonth()
-    ? `${sat.getDate()}.–${sun.getDate()}. ${MONTHS_NO[sun.getMonth()]}`
-    : `${sat.getDate()}. ${MONTHS_NO[sat.getMonth()]} – ${sun.getDate()}. ${MONTHS_NO[sun.getMonth()]}`;
-  html += `<div class="day ${satToday || sunToday ? "today" : ""}">
-    <div class="day-head">
-      <div class="wd">Helg</div>
-      <div class="dt">${range}${satToday || sunToday ? " · i dag" : ""}</div>
-    </div>
-    <div class="day-body">
-      <div class="wk-group ${sat < today ? "past" : ""}">
-        <div class="wk-label">Lørdag ${sat.getDate()}.${satToday ? " · i dag" : ""}</div>
-        ${listHtml(sat)}
-      </div>
-      <div class="wk-group ${sun < today ? "past" : ""}">
-        <div class="wk-label">Søndag ${sun.getDate()}.${sunToday ? " · i dag" : ""}</div>
-        ${listHtml(sun)}
-      </div>
-    </div>
-  </div>`;
   document.getElementById("week").innerHTML = html;
 
   // Sidepanel: kommende enkeltarrangementer (ikke faste treninger)
