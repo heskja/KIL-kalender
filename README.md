@@ -9,8 +9,11 @@ og viser dem i en TV-vennlig kalendervisning:
 - **Kommende arrangementer** – sidepanel med enkeltarrangementer (kamper, tilstelninger) med bilde
 - **Klokke og dato** i toppen
 - Faste treninger (gjentakende serier i feeden) ekspanderes automatisk til ukentlige oppføringer
-- Turkise oppføringer = faste aktiviteter, gule = enkeltarrangement
 - Ferdige aktiviteter dimmes utover dagen
+
+Designet følger klubbens profil fra [kvitsoyil.no](https://kvitsoyil.no): KIL-logoen,
+klubbens blåfarger (`#0054a6`, `#1174ba`, logoblå `#0007e6`) og et rent, hvitt uttrykk.
+Oppføringer med lyseblå kant er faste aktiviteter; mørkeblå fylte er enkeltarrangement.
 
 ## Automatisk oppdatering
 
