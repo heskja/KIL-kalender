@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kvitsøy Idrettslag – Aktivitetskalender</title>
+<style>
+  :root {
+    --bg: #0b1220;
+    --panel: #131d31;
+    --line: #24334f;
+    --text: #eaf1fb;
+    --muted: #93a5c1;
+    --accent: #2dd4bf;
+    --gold: #fbbf24;
+    --today: #1b2a47;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { font-size: clamp(11px, 0.95vw, 26px); }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---------- Topplinje ---------- */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 1.6rem;
+    background: linear-gradient(90deg, #0e1930, #12203c);
+    border-bottom: 2px solid var(--line);
+    flex: 0 0 auto;
+  }
+  .brand { display: flex; align-items: center; gap: 1rem; }
+  .brand .logo {
+    width: 3.2rem; height: 3.2rem;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #3ae8d0, #0f9e8b);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.15rem; color: #06241f;
+    letter-spacing: 0.02em;
+  }
+  .brand h1 { font-size: 1.7rem; font-weight: 700; letter-spacing: 0.01em; }
+  .brand .sub { font-size: 0.95rem; color: var(--muted); margin-top: 0.1rem; }
+  .clockbox { text-align: right; }
+  .clock { font-size: 2.3rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+  .dateline { font-size: 0.95rem; color: var(--muted); margin-top: 0.25rem; }
+
+  /* ---------- Hovedområde ---------- */
+  main {
+    flex: 1 1 auto;
+    display: grid;
+    grid-template-columns: 1fr 24rem;
+    gap: 1rem;
+    padding: 1rem 1.6rem;
+    min-height: 0;
+  }
+
+  /* Ukesvisning */
+  .week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.7rem;
+    min-height: 0;
+  }
+  .day {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 0.7rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .day.today {
+    background: var(--today);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .day-head {
+    padding: 0.6rem 0.7rem 0.5rem;
+    border-bottom: 1px solid var(--line);
+    flex: 0 0 auto;
+  }
+  .day-head .wd { font-size: 1.02rem; font-weight: 700; }
+  .day.today .wd { color: var(--accent); }
+  .day-head .dt { font-size: 0.82rem; color: var(--muted); margin-top: 0.1rem; }
+  .day-body {
+    padding: 0.55rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow: hidden;
+    flex: 1 1 auto;
+  }
+  .ev {
+    background: #0f1830;
+    border-left: 0.28rem solid var(--accent);
+    border-radius: 0.4rem;
+    padding: 0.45rem 0.55rem;
+  }
+  .ev.oneoff { border-left-color: var(--gold); background: #1a1a2c; }
+  .ev.done { opacity: 0.38; }
+  .ev .time { font-size: 0.8rem; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .ev.oneoff .time { color: var(--gold); }
+  .ev .name { font-size: 0.92rem; font-weight: 600; line-height: 1.25; margin-top: 0.12rem; overflow-wrap: anywhere; }
+  .more { font-size: 0.8rem; color: var(--muted); padding: 0.1rem 0.2rem; }
+  .empty { font-size: 0.82rem; color: #4d5f7d; padding: 0.2rem 0.2rem; }
+
+  /* Høydepunkter (enkeltarrangementer) */
+  aside {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 0.7rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+  aside h2 {
+    font-size: 1.05rem;
+    padding: 0.75rem 0.9rem;
+    border-bottom: 1px solid var(--line);
+    color: var(--gold);
+    flex: 0 0 auto;
+  }
+  .hl-list { padding: 0.7rem; display: flex; flex-direction: column; gap: 0.7rem; overflow: hidden; }
+  .hl {
+    display: flex; gap: 0.7rem;
+    background: #101a30;
+    border: 1px solid var(--line);
+    border-radius: 0.55rem;
+    overflow: hidden;
+  }
+  .hl img { width: 6.2rem; height: 5rem; object-fit: cover; flex: 0 0 auto; background: #0a1122; }
+  .hl .info { padding: 0.5rem 0.6rem 0.5rem 0; min-width: 0; }
+  .hl .when { font-size: 0.8rem; font-weight: 700; color: var(--gold); }
+  .hl .name { font-size: 0.95rem; font-weight: 600; line-height: 1.25; margin-top: 0.15rem; }
+  .hl .desc {
+    font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; line-height: 1.3;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .hl-empty { color: #4d5f7d; font-size: 0.9rem; padding: 0.5rem 0.9rem; }
+
+  /* ---------- Bunnlinje ---------- */
+  footer {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.45rem 1.6rem 0.6rem;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .status { display: flex; align-items: center; gap: 0.45rem; }
+  .dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: #3ddc84; }
+  .dot.err { background: #ef4444; }
+  .legend { display: flex; gap: 1.2rem; }
+  .legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .chip { width: 0.85rem; height: 0.55rem; border-radius: 0.15rem; display: inline-block; }
+  .chip.t { background: var(--accent); }
+  .chip.a { background: var(--gold); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo">KIL</div>
+    <div>
+      <h1 id="page-title">Kvitsøy Idrettslag</h1>
+      <div class="sub">Aktivitetskalender</div>
+    </div>
+  </div>
+  <div class="clockbox">
+    <div class="clock" id="clock">--:--</div>
+    <div class="dateline" id="dateline"></div>
+  </div>
+</header>
+
+<main>
+  <div class="week" id="week"></div>
+  <aside>
+    <h2>Kommende arrangementer</h2>
+    <div class="hl-list" id="highlights"></div>
+  </aside>
+</main>
+
+<footer>
+  <div class="status"><span class="dot" id="status-dot"></span><span id="status-text">Laster …</span></div>
+  <div class="legend">
+    <span><span class="chip t"></span>Faste aktiviteter</span>
+    <span><span class="chip a"></span>Enkeltarrangement</span>
+  </div>
+  <div>Kilde: friskus.com</div>
+</footer>
+
+<script>
+"use strict";
+
+const CONFIG = {
+  FEED_URL: "https://rss.friskus.com/feed/events?municipalities[]=81124063-e70c-40ed-9ecc-51bfabd9158d",
+  // Vis kun arrangementer fra denne arrangøren. Sett til "" (eller bruk ?alle=1) for å vise alle.
+  ORGANIZER: "KVITSØY IDRETTSLAG",
+  REFRESH_MINUTES: 10,   // hvor ofte RSS-feeden hentes på nytt
+  RELOAD_HOURS: 12,      // full side-innlasting (plukker opp nye versjoner av siden)
+  DAYS_TO_SHOW: 7,       // antall dagkolonner
+  MAX_PER_DAY: 5,        // maks synlige hendelser per dag
+  HIGHLIGHT_DAYS: 90,    // hvor langt frem enkeltarrangementer vises i sidepanelet
+  MAX_HIGHLIGHTS: 5,
+};
+
+const params = new URLSearchParams(location.search);
+if (params.get("alle") === "1") CONFIG.ORGANIZER = "";
+if (params.get("dager")) CONFIG.DAYS_TO_SHOW = Math.min(14, Math.max(1, parseInt(params.get("dager"), 10) || 7));
+
+const MONTHS = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11 };
+const WEEKDAYS_NO = ["søndag","mandag","tirsdag","onsdag","torsdag","fredag","lørdag"];
+const MONTHS_NO = ["januar","februar","mars","april","mai","juni","juli","august","september","oktober","november","desember"];
+
+let seriesCache = null; // sist vellykket tolkede feed
+
+/* ---------- Hjelpere ---------- */
+const esc = s => s.replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const stripHtml = s => { const d = document.createElement("div"); d.innerHTML = s; return (d.textContent || "").trim(); };
+const dayKey = d => d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const atMidnight = d => { const x = new Date(d); x.setHours(0,0,0,0); return x; };
+
+function parseFeedDate(s) {
+  // "Monday 17. Aug 2026"
+  const m = s.match(/(\d{1,2})\.\s*([A-Za-z]+)\.?\s*(\d{4})/);
+  if (!m) return null;
+  const month = MONTHS[m[2].slice(0,3).toLowerCase()];
+  if (month === undefined) return null;
+  return new Date(parseInt(m[3],10), month, parseInt(m[1],10));
+}
+
+function parseItem(item) {
+  const get = tag => { const el = item.querySelector(tag); return el ? el.textContent.trim() : ""; };
+  const title = get("title");
+  // "Navn, Monday 17. Aug 2026[ - Monday 21. Dec 2026], 17:30 - 18:30" (navnet kan selv inneholde komma)
+  const m = title.match(/^(.*),\s*([A-Za-z]+\s+\d{1,2}\.\s*[A-Za-z]+\.?\s*\d{4})(?:\s*-\s*([A-Za-z]+\s+\d{1,2}\.\s*[A-Za-z]+\.?\s*\d{4}))?,\s*(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})\s*$/);
+  if (!m) return null;
+  const startDate = parseFeedDate(m[2]);
+  const endDate = m[3] ? parseFeedDate(m[3]) : startDate;
+  if (!startDate || !endDate) return null;
+  const enclosure = item.querySelector("enclosure");
+  return {
+    name: m[1].trim(),
+    startDate, endDate,
+    startTime: m[4].padStart(5,"0"),
+    endTime: m[5].padStart(5,"0"),
+    recurring: dayKey(startDate) !== dayKey(endDate),
+    author: get("author"),
+    link: get("link"),
+    description: stripHtml(get("description")),
+    image: enclosure ? enclosure.getAttribute("url") : "",
+  };
+}
+
+function parseFeed(xmlText) {
+  const doc = new DOMParser().parseFromString(xmlText, "text/xml");
+  if (doc.querySelector("parsererror")) throw new Error("Ugyldig XML");
+  let series = [...doc.querySelectorAll("item")].map(parseItem).filter(Boolean);
+  if (CONFIG.ORGANIZER) {
+    const want = CONFIG.ORGANIZER.toLocaleUpperCase("nb");
+    series = series.filter(s => s.author.toLocaleUpperCase("nb") === want);
+  }
+  return series;
+}
+
+// Gjentakende serier går ukentlig på samme ukedag som startdatoen.
+function occurrencesFor(series, fromDay, toDay) {
+  const out = [];
+  for (const s of series) {
+    let d = atMidnight(s.startDate);
+    const last = atMidnight(s.endDate);
+    if (d < fromDay) {
+      const diffWeeks = Math.floor((fromDay - d) / (7 * 86400000));
+      d = addDays(d, diffWeeks * 7);
+      while (d < fromDay) d = addDays(d, 7);
+    }
+    for (let i = 0; d <= last && d <= toDay && i < 400; i++, d = s.recurring ? addDays(d, 7) : addDays(last, 1)) {
+      out.push({ ...s, day: new Date(d) });
+    }
+  }
+  out.sort((a,b) => (a.day - b.day) || a.startTime.localeCompare(b.startTime) || a.name.localeCompare(b.name, "nb"));
+  return out;
+}
+
+/* ---------- Rendering ---------- */
+function render() {
+  if (!seriesCache) return;
+  const now = new Date();
+  const today = atMidnight(now);
+  const lastDay = addDays(today, CONFIG.DAYS_TO_SHOW - 1);
+  const occ = occurrencesFor(seriesCache, today, lastDay);
+
+  const byDay = new Map();
+  for (const o of occ) {
+    const k = dayKey(o.day);
+    if (!byDay.has(k)) byDay.set(k, []);
+    byDay.get(k).push(o);
+  }
+
+  let html = "";
+  for (let i = 0; i < CONFIG.DAYS_TO_SHOW; i++) {
+    const d = addDays(today, i);
+    const events = byDay.get(dayKey(d)) || [];
+    const label = i === 0 ? "I dag" : i === 1 ? "I morgen" : cap(WEEKDAYS_NO[d.getDay()]);
+    let body = "";
+    for (const ev of events.slice(0, CONFIG.MAX_PER_DAY)) {
+      const done = i === 0 && ev.endTime >= ev.startTime && ev.endTime <= now.toTimeString().slice(0,5);
+      body += `<div class="ev ${ev.recurring ? "" : "oneoff"} ${done ? "done" : ""}">
+        <div class="time">${ev.startTime}–${ev.endTime}</div>
+        <div class="name">${esc(ev.name)}</div>
+      </div>`;
+    }
+    if (events.length > CONFIG.MAX_PER_DAY) body += `<div class="more">+ ${events.length - CONFIG.MAX_PER_DAY} flere</div>`;
+    if (!events.length) body = `<div class="empty">Ingen aktiviteter</div>`;
+    html += `<div class="day ${i === 0 ? "today" : ""}">
+      <div class="day-head">
+        <div class="wd">${label}</div>
+        <div class="dt">${d.getDate()}. ${MONTHS_NO[d.getMonth()]}</div>
+      </div>
+      <div class="day-body">${body}</div>
+    </div>`;
+  }
+  document.getElementById("week").innerHTML = html;
+
+  // Sidepanel: kommende enkeltarrangementer (ikke faste treninger)
+  const hlEnd = addDays(today, CONFIG.HIGHLIGHT_DAYS);
+  const highlights = occurrencesFor(seriesCache.filter(s => !s.recurring), today, hlEnd)
+    .slice(0, CONFIG.MAX_HIGHLIGHTS);
+  document.getElementById("highlights").innerHTML = highlights.length
+    ? highlights.map(h => `<div class="hl">
+        ${h.image ? `<img src="${esc(h.image)}" alt="" onerror="this.remove()">` : ""}
+        <div class="info">
+          <div class="when">${cap(WEEKDAYS_NO[h.day.getDay()])} ${h.day.getDate()}. ${MONTHS_NO[h.day.getMonth()]} · ${h.startTime}</div>
+          <div class="name">${esc(h.name)}</div>
+          ${h.description ? `<div class="desc">${esc(h.description)}</div>` : ""}
+        </div>
+      </div>`).join("")
+    : `<div class="hl-empty">Ingen enkeltarrangementer er planlagt.</div>`;
+}
+
+/* ---------- Datahenting ---------- */
+async function refresh() {
+  const dot = document.getElementById("status-dot");
+  const txt = document.getElementById("status-text");
+  try {
+    const res = await fetch(CONFIG.FEED_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const xml = await res.text();
+    seriesCache = parseFeed(xml);
+    try { localStorage.setItem("kil-feed", xml); } catch (e) {}
+    dot.classList.remove("err");
+    const t = new Date();
+    txt.textContent = "Oppdatert " + String(t.getHours()).padStart(2,"0") + ":" + String(t.getMinutes()).padStart(2,"0");
+  } catch (err) {
+    if (!seriesCache) {
+      try {
+        const cached = localStorage.getItem("kil-feed");
+        if (cached) seriesCache = parseFeed(cached);
+      } catch (e) {}
+    }
+    dot.classList.add("err");
+    txt.textContent = seriesCache ? "Frakoblet – viser sist lagrede data" : "Fikk ikke hentet kalenderen";
+  }
+  render();
+}
+
+/* ---------- Klokke og livssyklus ---------- */
+function tickClock() {
+  const now = new Date();
+  document.getElementById("clock").textContent =
+    String(now.getHours()).padStart(2,"0") + ":" + String(now.getMinutes()).padStart(2,"0");
+  document.getElementById("dateline").textContent =
+    cap(WEEKDAYS_NO[now.getDay()]) + " " + now.getDate() + ". " + MONTHS_NO[now.getMonth()] + " " + now.getFullYear();
+}
+
+let currentDay = dayKey(new Date());
+setInterval(() => {
+  tickClock();
+  const k = dayKey(new Date());
+  if (k !== currentDay) { currentDay = k; render(); } // rull kalenderen ved midnatt
+}, 1000);
+
+setInterval(refresh, CONFIG.REFRESH_MINUTES * 60 * 1000);
+setInterval(render, 5 * 60 * 1000); // dimmer ferdige hendelser utover dagen
+setTimeout(() => location.reload(), CONFIG.RELOAD_HOURS * 60 * 60 * 1000);
+
+tickClock();
+refresh();
+</script>
+</body>
+</html>
