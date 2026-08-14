@@ -36,10 +36,32 @@ Alt skjer i nettleseren – ingen server eller database trengs:
 - **Smart-TV**: åpne adressen i TV-ens innebygde nettleser
 - **PC/Mini-PC koblet til TV**: start Chrome i kioskmodus:
   `chrome --kiosk --noerrdialogs --disable-session-crashed-bubble https://heskja.github.io/KIL-kalender/`
-- **Raspberry Pi**: bruk Chromium i kioskmodus ved oppstart, eller et ferdig verktøy som FullPageOS
+- **Raspberry Pi**: bruk det medfølgende skriptet – se under
 - **Google TV / Chromecast / Android-TV**: bruk en kiosk-app (f.eks. «Fully Kiosk Browser») og pek den til adressen
 
 Siden er laget for å stå på døgnet rundt uten tilsyn og skalerer skriften etter skjermstørrelsen (også 4K).
+
+### Raspberry Pi som infoskjerm
+
+Koble en Raspberry Pi (med Raspberry Pi OS **med skrivebord**) til TV-en og kjør, som
+den vanlige skrivebordsbrukeren:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/heskja/KIL-kalender/main/raspberry-pi/install-kiosk.sh -o install-kiosk.sh
+bash install-kiosk.sh
+sudo reboot
+```
+
+Skriptet [`raspberry-pi/install-kiosk.sh`](raspberry-pi/install-kiosk.sh):
+
+- lager et oppstartsskript som venter på nettverk og starter Chromium i kioskmodus (fullskjerm, uten feildialoger) mot kalender-URL-en
+- registrerer det for autostart ved innlogging – støtter både nye Raspberry Pi OS-versjoner (Wayland: labwc/wayfire) og eldre (X11/LXDE)
+- slår av skjermsparing/blanking via `raspi-config`
+
+Vil du vise en annen adresse (f.eks. med `?alle=1`), oppgi den som argument:
+`bash install-kiosk.sh "https://heskja.github.io/KIL-kalender/?alle=1"`
+
+For å avslutte kioskmodus på skjermen: trykk `Alt+F4` (med tastatur tilkoblet).
 
 ## Innstillinger
 
