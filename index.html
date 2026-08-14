@@ -66,7 +66,7 @@
   /* Ukesvisning */
   .week {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 0.7rem;
     min-height: 0;
   }
@@ -106,8 +106,21 @@
   .ev.oneoff { background: var(--navy); border-left-color: var(--navy-moerk); color: #ffffff; }
   .ev.oneoff .time { color: #ffffff; }
   .ev.done { opacity: 0.35; }
+  .day.past .day-body { opacity: 0.45; }
   .more { font-size: 0.8rem; color: var(--grau); padding: 0.1rem 0.2rem; }
   .empty { font-size: 0.82rem; color: #b3bac1; padding: 0.2rem 0.2rem; }
+
+  /* Helgekolonnen: lørdag og søndag i samme kolonne */
+  .wk-group { display: flex; flex-direction: column; gap: 0.5rem; }
+  .wk-group.past { opacity: 0.45; }
+  .wk-label {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: var(--navy);
+    border-bottom: 1px solid var(--strek);
+    padding-bottom: 0.15rem;
+  }
+  .wk-group + .wk-group { margin-top: 0.35rem; }
 
   /* Kommende enkeltarrangementer */
   aside {
@@ -206,7 +219,6 @@ const CONFIG = {
   ORGANIZER: "KVITSØY IDRETTSLAG",
   REFRESH_MINUTES: 10,   // hvor ofte RSS-feeden hentes på nytt
   RELOAD_HOURS: 12,      // full side-innlasting (plukker opp nye versjoner av siden)
-  DAYS_TO_SHOW: 7,       // antall dagkolonner
   MAX_PER_DAY: 5,        // maks synlige hendelser per dag
   HIGHLIGHT_DAYS: 90,    // hvor langt frem enkeltarrangementer vises i sidepanelet
   MAX_HIGHLIGHTS: 5,
@@ -214,7 +226,6 @@ const CONFIG = {
 
 const params = new URLSearchParams(location.search);
 if (params.get("alle") === "1") CONFIG.ORGANIZER = "";
-if (params.get("dager")) CONFIG.DAYS_TO_SHOW = Math.min(14, Math.max(1, parseInt(params.get("dager"), 10) || 7));
 
 const MONTHS = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11 };
 const WEEKDAYS_NO = ["søndag","mandag","tirsdag","onsdag","torsdag","fredag","lørdag"];
@@ -293,12 +304,14 @@ function occurrencesFor(series, fromDay, toDay) {
 }
 
 /* ---------- Rendering ---------- */
+// Fast ukesvisning: mandag–fredag som egne kolonner, lørdag+søndag samlet i en helgekolonne.
 function render() {
   if (!seriesCache) return;
   const now = new Date();
   const today = atMidnight(now);
-  const lastDay = addDays(today, CONFIG.DAYS_TO_SHOW - 1);
-  const occ = occurrencesFor(seriesCache, today, lastDay);
+  const monday = addDays(today, -((today.getDay() + 6) % 7));
+  const sunday = addDays(monday, 6);
+  const occ = occurrencesFor(seriesCache, monday, sunday);
 
   const byDay = new Map();
   for (const o of occ) {
@@ -307,14 +320,13 @@ function render() {
     byDay.get(k).push(o);
   }
 
-  let html = "";
-  for (let i = 0; i < CONFIG.DAYS_TO_SHOW; i++) {
-    const d = addDays(today, i);
+  const nowHM = now.toTimeString().slice(0,5);
+  const listHtml = (d) => {
+    const isToday = dayKey(d) === dayKey(today);
     const events = byDay.get(dayKey(d)) || [];
-    const label = i === 0 ? "I dag" : i === 1 ? "I morgen" : cap(WEEKDAYS_NO[d.getDay()]);
     let body = "";
     for (const ev of events.slice(0, CONFIG.MAX_PER_DAY)) {
-      const done = i === 0 && ev.endTime >= ev.startTime && ev.endTime <= now.toTimeString().slice(0,5);
+      const done = isToday && ev.endTime >= ev.startTime && ev.endTime <= nowHM;
       body += `<div class="ev ${ev.recurring ? "" : "oneoff"} ${done ? "done" : ""}">
         <div class="time">${ev.startTime}–${ev.endTime}</div>
         <div class="name">${esc(ev.name)}</div>
@@ -322,14 +334,44 @@ function render() {
     }
     if (events.length > CONFIG.MAX_PER_DAY) body += `<div class="more">+ ${events.length - CONFIG.MAX_PER_DAY} flere</div>`;
     if (!events.length) body = `<div class="empty">Ingen aktiviteter</div>`;
-    html += `<div class="day ${i === 0 ? "today" : ""}">
+    return body;
+  };
+
+  let html = "";
+  for (let i = 0; i < 5; i++) {
+    const d = addDays(monday, i);
+    const isToday = dayKey(d) === dayKey(today);
+    html += `<div class="day ${isToday ? "today" : ""} ${d < today ? "past" : ""}">
       <div class="day-head">
-        <div class="wd">${label}</div>
-        <div class="dt">${d.getDate()}. ${MONTHS_NO[d.getMonth()]}</div>
+        <div class="wd">${cap(WEEKDAYS_NO[d.getDay()])}</div>
+        <div class="dt">${d.getDate()}. ${MONTHS_NO[d.getMonth()]}${isToday ? " · i dag" : ""}</div>
       </div>
-      <div class="day-body">${body}</div>
+      <div class="day-body">${listHtml(d)}</div>
     </div>`;
   }
+
+  // Helgekolonnen
+  const sat = addDays(monday, 5), sun = sunday;
+  const satToday = dayKey(sat) === dayKey(today), sunToday = dayKey(sun) === dayKey(today);
+  const range = sat.getMonth() === sun.getMonth()
+    ? `${sat.getDate()}.–${sun.getDate()}. ${MONTHS_NO[sun.getMonth()]}`
+    : `${sat.getDate()}. ${MONTHS_NO[sat.getMonth()]} – ${sun.getDate()}. ${MONTHS_NO[sun.getMonth()]}`;
+  html += `<div class="day ${satToday || sunToday ? "today" : ""}">
+    <div class="day-head">
+      <div class="wd">Helg</div>
+      <div class="dt">${range}${satToday || sunToday ? " · i dag" : ""}</div>
+    </div>
+    <div class="day-body">
+      <div class="wk-group ${sat < today ? "past" : ""}">
+        <div class="wk-label">Lørdag ${sat.getDate()}.${satToday ? " · i dag" : ""}</div>
+        ${listHtml(sat)}
+      </div>
+      <div class="wk-group ${sun < today ? "past" : ""}">
+        <div class="wk-label">Søndag ${sun.getDate()}.${sunToday ? " · i dag" : ""}</div>
+        ${listHtml(sun)}
+      </div>
+    </div>
+  </div>`;
   document.getElementById("week").innerHTML = html;
 
   // Sidepanel: kommende enkeltarrangementer (ikke faste treninger)

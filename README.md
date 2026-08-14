@@ -5,7 +5,7 @@ Aktivitetskalender for infoskjerm (TV) til **Kvitsøy Idrettslag**.
 Siden henter arrangementer automatisk fra RSS-feeden til [friskus.com](https://friskus.com)
 og viser dem i en TV-vennlig kalendervisning:
 
-- **Ukesvisning** – de neste 7 dagene med alle aktiviteter (dagens dag er markert)
+- **Fast ukesvisning** – mandag til fredag som egne kolonner pluss en samlet helgekolonne (lørdag/søndag); dagens dag er markert og passerte dager dimmes
 - **Kommende arrangementer** – sidepanel med enkeltarrangementer (kamper, tilstelninger) med bilde
 - **Klokke og dato** i toppen
 - Faste treninger (gjentakende serier i feeden) ekspanderes automatisk til ukentlige oppføringer
@@ -20,7 +20,7 @@ Oppføringer med lyseblå kant er faste aktiviteter; mørkeblå fylte er enkelta
 Alt skjer i nettleseren – ingen server eller database trengs:
 
 - RSS-feeden hentes på nytt **hvert 10. minutt**, så endringer i Friskus dukker opp av seg selv
-- Kalenderen ruller automatisk videre ved midnatt
+- Kalenderen ruller automatisk til ny uke ved midnatt natt til mandag
 - Siden laster seg selv helt på nytt hver 12. time (plukker opp nye versjoner av selve siden)
 - Ved nettverksfeil vises sist lagrede data (mellomlagret i nettleseren) og en rød statusprikk nederst
 
@@ -75,12 +75,8 @@ For å avslutte kioskmodus på skjermen: trykk `Alt+F4` (med tastatur tilkoblet)
 | `FEED_URL` | Friskus-feed for Kvitsøy | RSS-kilden |
 | `ORGANIZER` | `KVITSØY IDRETTSLAG` | Vis kun denne arrangøren (tom streng = alle) |
 | `REFRESH_MINUTES` | 10 | Hvor ofte feeden hentes |
-| `DAYS_TO_SHOW` | 7 | Antall dagkolonner |
 | `HIGHLIGHT_DAYS` | 90 | Hvor langt frem sidepanelet ser |
 
-I tillegg støttes URL-parametere, uten å endre koden:
-
-- `?alle=1` – vis alle arrangører på Kvitsøy (ikke bare idrettslaget)
-- `?dager=5` – vis et annet antall dagkolonner (1–14)
-
-Eksempel: `https://heskja.github.io/KIL-kalender/?alle=1&dager=5`
+I tillegg støttes URL-parameteren `?alle=1` – vis alle arrangører på Kvitsøy
+(ikke bare idrettslaget), uten å endre koden:
+`https://heskja.github.io/KIL-kalender/?alle=1`
