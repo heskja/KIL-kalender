@@ -130,7 +130,7 @@
   }
   .day.today .day-head { background: var(--today-bg); }
   .day-head .wd { font-size: 1.1rem; font-weight: bold; }
-  .day-head .dt { font-size: 0.85rem; opacity: 0.85; margin-top: 0.1rem; }
+  .day-head .dt { font-size: 0.85rem; opacity: 0.85; margin-top: 0.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .day-body {
     padding: 0.55rem;
     display: flex;
@@ -262,9 +262,11 @@ if (params.get("dager")) CONFIG.DAYS_TO_SHOW = Math.min(14, Math.max(1, parseInt
 if (params.get("tema") === "lys") document.body.classList.add("tema-lys");
 document.getElementById("week").style.gridTemplateColumns = `repeat(${CONFIG.DAYS_TO_SHOW}, 1fr)`;
 
-const MONTHS = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11 };
+// Feeden har vekslet mellom engelske og norske månedsnavn – støtt begge
+const MONTHS = { jan:0, feb:1, mar:2, apr:3, may:4, mai:4, jun:5, jul:6, aug:7, sep:8, oct:9, okt:9, nov:10, dec:11, des:11 };
 const WEEKDAYS_NO = ["søndag","mandag","tirsdag","onsdag","torsdag","fredag","lørdag"];
 const MONTHS_NO = ["januar","februar","mars","april","mai","juni","juli","august","september","oktober","november","desember"];
+const MONTHS_NO_KORT = ["jan.","feb.","mars","apr.","mai","juni","juli","aug.","sep.","okt.","nov.","des."];
 
 let seriesCache = null; // sist vellykket tolkede feed
 
@@ -278,8 +280,8 @@ const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); r
 const atMidnight = d => { const x = new Date(d); x.setHours(0,0,0,0); return x; };
 
 function parseFeedDate(s) {
-  // "Monday 17. Aug 2026"
-  const m = s.match(/(\d{1,2})\.\s*([A-Za-z]+)\.?\s*(\d{4})/);
+  // "Monday 17. Aug 2026" eller "mandag 17. aug 2026"
+  const m = s.match(/(\d{1,2})\.\s*(\p{L}+)\.?\s*(\d{4})/u);
   if (!m) return null;
   const month = MONTHS[m[2].slice(0,3).toLowerCase()];
   if (month === undefined) return null;
@@ -289,8 +291,9 @@ function parseFeedDate(s) {
 function parseItem(item) {
   const get = tag => { const el = item.querySelector(tag); return el ? el.textContent.trim() : ""; };
   const title = get("title");
-  // "Navn, Monday 17. Aug 2026[ - Monday 21. Dec 2026], 17:30 - 18:30" (navnet kan selv inneholde komma)
-  const m = title.match(/^(.*),\s*([A-Za-z]+\s+\d{1,2}\.\s*[A-Za-z]+\.?\s*\d{4})(?:\s*-\s*([A-Za-z]+\s+\d{1,2}\.\s*[A-Za-z]+\.?\s*\d{4}))?,\s*(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})\s*$/);
+  // "Navn, mandag 17. aug 2026[ - mandag 21. des 2026], 17:30 - 18:30" (navnet kan selv
+  // inneholde komma; ukedag/måned kan være norsk eller engelsk, derav \p{L} for æøå)
+  const m = title.match(/^(.*),\s*(\p{L}+\s+\d{1,2}\.\s*\p{L}+\.?\s*\d{4})(?:\s*-\s*(\p{L}+\s+\d{1,2}\.\s*\p{L}+\.?\s*\d{4}))?,\s*(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})\s*$/u);
   if (!m) return null;
   const startDate = parseFeedDate(m[2]);
   const endDate = m[3] ? parseFeedDate(m[3]) : startDate;
@@ -373,7 +376,7 @@ function render() {
     html += `<div class="day ${i === 0 ? "today" : ""}">
       <div class="day-head">
         <div class="wd">${label}</div>
-        <div class="dt">${cap(WEEKDAYS_NO[d.getDay()])} ${d.getDate()}. ${MONTHS_NO[d.getMonth()]}</div>
+        <div class="dt">${cap(WEEKDAYS_NO[d.getDay()])} ${d.getDate()}. ${MONTHS_NO_KORT[d.getMonth()]}</div>
       </div>
       <div class="day-body">${body}</div>
     </div>`;
