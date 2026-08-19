@@ -51,6 +51,7 @@ exec "$BROWSER" \\
   --disable-session-crashed-bubble \\
   --disable-restore-session-state \\
   --check-for-update-interval=31536000 \\
+  --password-store=basic \\
   --user-data-dir="\$HOME/.config/kil-kiosk" \\
   "\$URL"
 EOF
