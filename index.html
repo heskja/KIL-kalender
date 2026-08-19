@@ -56,8 +56,9 @@
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  /* Stor grunnskrift: siden skal kunne leses på ca. 5 meters avstand */
-  html { font-size: clamp(13px, 1.22vw, 30px); }
+  /* Stor grunnskrift som vokser med skjermbredden (også 4K), lesbar på ca. 5 meter.
+     --skala justeres med URL-parameteren ?skala=N. */
+  html { font-size: calc(clamp(13px, 1.22vw, 64px) * var(--skala, 1)); }
   body {
     font-family: Arial, Helvetica, sans-serif;
     background: var(--bg);
@@ -260,6 +261,10 @@ const params = new URLSearchParams(location.search);
 if (params.get("alle") === "1") CONFIG.ORGANIZER = "";
 if (params.get("dager")) CONFIG.DAYS_TO_SHOW = Math.min(14, Math.max(1, parseInt(params.get("dager"), 10) || 7));
 if (params.get("tema") === "lys") document.body.classList.add("tema-lys");
+if (params.get("skala")) {
+  const skala = parseFloat(params.get("skala").replace(",", "."));
+  if (skala >= 0.5 && skala <= 3) document.documentElement.style.setProperty("--skala", skala);
+}
 document.getElementById("week").style.gridTemplateColumns = `repeat(${CONFIG.DAYS_TO_SHOW}, 1fr)`;
 
 // Feeden har vekslet mellom engelske og norske månedsnavn – støtt begge

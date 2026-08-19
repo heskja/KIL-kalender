@@ -84,7 +84,8 @@ For å avslutte kioskmodus på skjermen: trykk `Alt+F4` (med tastatur tilkoblet)
 I tillegg støttes URL-parametere, uten å endre koden:
 
 - `?dager=N` – antall dagkolonner i den rullerende visningen (1–14, standard 7)
+- `?skala=N` – gang opp/ned all tekst og luft (0.5–3, standard 1; f.eks. `?skala=1.3`)
 - `?tema=lys` – lyst tema (standard er mørkt, beregnet på TV)
 - `?alle=1` – vis alle arrangører på Kvitsøy (ikke bare idrettslaget)
 
-Eksempel: `https://heskja.github.io/KIL-kalender/?dager=5&tema=lys`
+Eksempel: `https://heskja.github.io/KIL-kalender/?dager=5&skala=1.2`
