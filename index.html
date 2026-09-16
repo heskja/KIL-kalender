@@ -380,6 +380,8 @@ function render() {
     const d = addDays(today, i);
     const events = byDay.get(dayKey(d)) || [];
     const label = i === 0 ? "I dag" : i === 1 ? "I morgen" : cap(WEEKDAYS_NO[d.getDay()]);
+    // Ukedag i datolinjen bare når overskriften ikke selv er en ukedag («I dag»/«I morgen»)
+    const dt = (i < 2 ? cap(WEEKDAYS_NO[d.getDay()]) + " " : "") + d.getDate() + ". " + MONTHS_NO_KORT[d.getMonth()];
     let body = "";
     for (const ev of events.slice(0, CONFIG.MAX_PER_DAY)) {
       const done = i === 0 && ev.endTime >= ev.startTime && ev.endTime <= now.toTimeString().slice(0,5);
@@ -393,7 +395,7 @@ function render() {
     html += `<div class="day ${i === 0 ? "today" : ""}">
       <div class="day-head">
         <div class="wd">${label}</div>
-        <div class="dt">${cap(WEEKDAYS_NO[d.getDay()])} ${d.getDate()}. ${MONTHS_NO_KORT[d.getMonth()]}</div>
+        <div class="dt">${dt}</div>
       </div>
       <div class="day-body">${body}</div>
     </div>`;
