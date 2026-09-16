@@ -76,7 +76,7 @@ For å avslutte kioskmodus på skjermen: trykk `Alt+F4` (med tastatur tilkoblet)
 | Innstilling | Standard | Beskrivelse |
 |---|---|---|
 | `FEED_URL` | Friskus-feed for Kvitsøy | RSS-kilden |
-| `ORGANIZER` | `KVITSØY IDRETTSLAG` | Vis kun denne arrangøren (tom streng = alle) |
+| `ORGANIZERS` | `KVITSØY IDRETTSLAG` | Liste over arrangører som vises (tom liste = alle). Legg til flere for å vise arrangementer der KIL er medarrangør – feeden oppgir bare hovedarrangøren, så da må hovedarrangørens navn stå her |
 | `REFRESH_MINUTES` | 10 | Hvor ofte feeden hentes |
 | `DAYS_TO_SHOW` | 7 | Antall dagkolonner |
 | `HIGHLIGHT_DAYS` | 90 | Hvor langt frem sidepanelet ser |
@@ -87,5 +87,9 @@ I tillegg støttes URL-parametere, uten å endre koden:
 - `?skala=N` – gang opp/ned all tekst og luft (0.5–3, standard 1; f.eks. `?skala=1.3`)
 - `?tema=lys` – lyst tema (standard er mørkt, beregnet på TV)
 - `?alle=1` – vis alle arrangører på Kvitsøy (ikke bare idrettslaget)
+- `?arrangorer=Navn1,Navn2` – vis flere navngitte arrangører i tillegg til listen i
+  `ORGANIZERS` (navnet slik det står i Friskus, f.eks.
+  `?arrangorer=Gla'trimmen,KVITSØY OG RANDABERG TAEKWON-DO KLUBB`; nettleseren
+  håndterer æøå og mellomrom i adressefeltet automatisk)
 
 Eksempel: `https://heskja.github.io/KIL-kalender/?dager=5&skala=1.2`

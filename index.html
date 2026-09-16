@@ -247,8 +247,15 @@
 
 const CONFIG = {
   FEED_URL: "https://rss.friskus.com/feed/events?municipalities[]=81124063-e70c-40ed-9ecc-51bfabd9158d",
-  // Vis kun arrangementer fra denne arrangøren. Sett til "" (eller bruk ?alle=1) for å vise alle.
-  ORGANIZER: "KVITSØY IDRETTSLAG",
+  // Vis kun arrangementer fra disse arrangørene (navnet slik det står i feeden,
+  // store/små bokstaver spiller ingen rolle). Legg til flere linjer for å vise
+  // f.eks. arrangementer der Kvitsøy IL er medarrangør, uten å vise alle på øya.
+  // Kan også utvides midlertidig med ?arrangorer=Navn1,Navn2 i URL-en,
+  // eller settes til [] (eller bruk ?alle=1) for å vise alle.
+  ORGANIZERS: [
+    "KVITSØY IDRETTSLAG",
+    "KVITSØY OG RANDABERG TAEKWON-DO KLUBB",
+  ],
   REFRESH_MINUTES: 10,   // hvor ofte RSS-feeden hentes på nytt
   RELOAD_HOURS: 12,      // full side-innlasting (plukker opp nye versjoner av siden)
   DAYS_TO_SHOW: 7,       // antall dagkolonner (overstyres med ?dager=N)
@@ -258,7 +265,12 @@ const CONFIG = {
 };
 
 const params = new URLSearchParams(location.search);
-if (params.get("alle") === "1") CONFIG.ORGANIZER = "";
+if (params.get("alle") === "1") CONFIG.ORGANIZERS = [];
+if (params.get("arrangorer")) {
+  CONFIG.ORGANIZERS = CONFIG.ORGANIZERS.concat(
+    params.get("arrangorer").split(",").map(s => s.trim()).filter(Boolean)
+  );
+}
 if (params.get("dager")) CONFIG.DAYS_TO_SHOW = Math.min(14, Math.max(1, parseInt(params.get("dager"), 10) || 7));
 if (params.get("tema") === "lys") document.body.classList.add("tema-lys");
 if (params.get("skala")) {
@@ -305,12 +317,12 @@ function parseItem(item) {
   if (!startDate || !endDate) return null;
   const enclosure = item.querySelector("enclosure");
   return {
-    name: m[1].trim(),
+    name: stripHtml(m[1].trim()),
     startDate, endDate,
     startTime: m[4].padStart(5,"0"),
     endTime: m[5].padStart(5,"0"),
     recurring: dayKey(startDate) !== dayKey(endDate),
-    author: get("author"),
+    author: stripHtml(get("author")),
     link: get("link"),
     description: stripHtml(get("description")),
     image: enclosure ? enclosure.getAttribute("url") : "",
@@ -321,9 +333,9 @@ function parseFeed(xmlText) {
   const doc = new DOMParser().parseFromString(xmlText, "text/xml");
   if (doc.querySelector("parsererror")) throw new Error("Ugyldig XML");
   let series = [...doc.querySelectorAll("item")].map(parseItem).filter(Boolean);
-  if (CONFIG.ORGANIZER) {
-    const want = CONFIG.ORGANIZER.toLocaleUpperCase("nb");
-    series = series.filter(s => s.author.toLocaleUpperCase("nb") === want);
+  if (CONFIG.ORGANIZERS.length) {
+    const want = new Set(CONFIG.ORGANIZERS.map(a => a.trim().toLocaleUpperCase("nb")));
+    series = series.filter(s => want.has(s.author.trim().toLocaleUpperCase("nb")));
   }
   return series;
 }
@@ -368,6 +380,8 @@ function render() {
     const d = addDays(today, i);
     const events = byDay.get(dayKey(d)) || [];
     const label = i === 0 ? "I dag" : i === 1 ? "I morgen" : cap(WEEKDAYS_NO[d.getDay()]);
+    // Ukedag i datolinjen bare når overskriften ikke selv er en ukedag («I dag»/«I morgen»)
+    const dt = (i < 2 ? cap(WEEKDAYS_NO[d.getDay()]) + " " : "") + d.getDate() + ". " + MONTHS_NO_KORT[d.getMonth()];
     let body = "";
     for (const ev of events.slice(0, CONFIG.MAX_PER_DAY)) {
       const done = i === 0 && ev.endTime >= ev.startTime && ev.endTime <= now.toTimeString().slice(0,5);
@@ -381,7 +395,7 @@ function render() {
     html += `<div class="day ${i === 0 ? "today" : ""}">
       <div class="day-head">
         <div class="wd">${label}</div>
-        <div class="dt">${cap(WEEKDAYS_NO[d.getDay()])} ${d.getDate()}. ${MONTHS_NO_KORT[d.getMonth()]}</div>
+        <div class="dt">${dt}</div>
       </div>
       <div class="day-body">${body}</div>
     </div>`;
