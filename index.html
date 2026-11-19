@@ -216,7 +216,7 @@
     <div class="merke"><img src="img/kil-merke.png" alt="KIL"></div>
     <div>
       <h1 id="page-title">KVITSØY IDRETTSLAG</h1>
-      <div class="sub">Aktivitetskalender</div>
+      <div class="sub" id="page-subtitle">Aktivitetskalender</div>
     </div>
   </div>
   <div class="clockbox">
@@ -276,6 +276,19 @@ if (params.get("tema") === "lys") document.body.classList.add("tema-lys");
 if (params.get("skala")) {
   const skala = parseFloat(params.get("skala").replace(",", "."));
   if (skala >= 0.5 && skala <= 3) document.documentElement.style.setProperty("--skala", skala);
+}
+// Tittel, undertittel og logo kan overstyres fra URL-en. Tekst vises nøyaktig slik
+// den skrives inn (store/små bokstaver, mellomrom og spesialtegn bevares –
+// nettleseren URL-koder automatisk). ?logo= tar en bildeadresse, eller
+// snarveien "kommune" for Kvitsøy kommunes våpen.
+const tittel = params.get("tittel") || params.get("title");
+const undertittel = params.get("undertittel") || params.get("subtitle");
+const logo = params.get("logo");
+if (tittel) document.getElementById("page-title").textContent = tittel;
+if (undertittel) document.getElementById("page-subtitle").textContent = undertittel;
+if (logo) document.querySelector(".brand img").src = logo === "kommune" ? "img/kvitsoy-kommune.png" : logo;
+if (tittel || undertittel) {
+  document.title = (tittel || "Kvitsøy Idrettslag") + " – " + (undertittel || "Aktivitetskalender");
 }
 document.getElementById("week").style.gridTemplateColumns = `repeat(${CONFIG.DAYS_TO_SHOW}, 1fr)`;
 
