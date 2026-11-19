@@ -84,6 +84,14 @@ For å avslutte kioskmodus på skjermen: trykk `Alt+F4` (med tastatur tilkoblet)
 I tillegg støttes URL-parametere, uten å endre koden:
 
 - `?dager=N` – antall dagkolonner i den rullerende visningen (1–14, standard 7)
+- `?tittel=Min tittel` – overstyr tittelen i toppen (standard «KVITSØY IDRETTSLAG»).
+  Mellomrom, spesialtegn og store/små bokstaver vises nøyaktig slik de skrives
+  (nettleseren URL-koder automatisk). `?title=` fungerer også
+- `?undertittel=Min undertekst` – overstyr underteksten (standard
+  «Aktivitetskalender»). `?subtitle=` fungerer også
+- `?logo=…` – overstyr logoen: enten en bildeadresse (URL) eller snarveien
+  `?logo=kommune` for Kvitsøy kommunes kommunevåpen (ligger i
+  `img/kvitsoy-kommune.png`)
 - `?skala=N` – gang opp/ned all tekst og luft (0.5–3, standard 1; f.eks. `?skala=1.3`)
 - `?tema=lys` – lyst tema (standard er mørkt, beregnet på TV)
 - `?alle=1` – vis alle arrangører på Kvitsøy (ikke bare idrettslaget)
